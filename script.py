@@ -25,13 +25,25 @@ class TaskManager:
         self.tasks = []
         self.load_tasks()
 
+    def delete_task(self, task_id):
+        """Supprime une tâche de la liste grâce à son ID"""
+        initial_count = len(self.tasks)
+        self.tasks = [task for task in self.tasks if task.id != task_id]
+        
+        if len(self.tasks) < initial_count:
+            self.save_tasks()
+            print(f"🗑️ Tâche {task_id} supprimée avec succès !")
+            return True
+        else:
+            print("❌ ID introuvable. Aucune tâche supprimée.")
+            return False
+
     def load_tasks(self):
         """Charge les tâches depuis le fichier JSON s'il existe"""
         if os.path.exists(self.filename):
             with open(self.filename, 'r', encoding='utf-8') as file:
                 try:
                     data = json.load(file)
-                    # On reconstruit les objets Task à partir du JSON
                     self.tasks = [Task(**task) for task in data]
                 except json.JSONDecodeError:
                     self.tasks = []
@@ -58,7 +70,8 @@ def afficher_menu():
     print("1. Afficher toutes les tâches")
     print("2. Ajouter une tâche")
     print("3. Modifier le statut d'une tâche")
-    print("4. Quitter")
+    print("4. Supprimer une tâche")
+    print("5. Quitter")
     print("="*30)
 
 if __name__ == "__main__":
@@ -66,7 +79,7 @@ if __name__ == "__main__":
     
     while True:
         afficher_menu()
-        choix = input("Choisissez une option (1-4) : ")
+        choix = input("Choisissez une option (1-5) : ")
         
         if choix == "1":
             print("\n--- Liste des tâches ---")
@@ -87,7 +100,6 @@ if __name__ == "__main__":
             print("\n--- Modifier le statut ---")
             try:
                 task_id = int(input("Entrez l'ID de la tâche à modifier : "))
-                # Recherche de la tâche par ID
                 task = next((t for t in manager.tasks if t.id == task_id), None)
                 if task:
                     print("1. À faire | 2. En cours | 3. Terminé")
@@ -104,7 +116,15 @@ if __name__ == "__main__":
                 print("❌ Veuillez entrer un ID valide.")
                 
         elif choix == "4":
+            print("\n--- Supprimer une tâche ---")
+            try:
+                task_id = int(input("Entrez l'ID de la tâche à supprimer : "))
+                manager.delete_task(task_id)
+            except ValueError:
+                print("❌ Veuillez entrer un ID valide.")
+                
+        elif choix == "5":
             print("\n👋 Au revoir !")
             break
         else:
-            print("❌ Option invalide. Veuillez choisir entre 1 et 4.")
+            print("❌ Option invalide. Veuillez choisir entre 1 et 5.")
